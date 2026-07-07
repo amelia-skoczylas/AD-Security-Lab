@@ -8,7 +8,8 @@ Projekt laboratoryjny z zakresu cyberbezpieczeństwa (Blue Team / Systems Engine
 
 | Maszyna wirtualna | Rola w sieci | System operacyjny | Adres IP | DNS Server |
 | :--- | :--- | :--- | :--- | :--- |
-| **DC01** | Kontroler Domeny (`lab.local`), DNS Server | Windows Server 2022 Standard (Desktop Experience) | `192.168.10.10` | `127.0.0.1` / `192.168.10.10` |
+| **OPNsense-FW** | Firewall / Default Gateway | HardenedBSD (OPNsense) | `192.168.10.1` (LAN) / NAT (WAN) | N/A |
+| **DC01** | Kontroler Domeny (`lab.local`), DNS Server | Windows Server 2022 Standard | `192.168.10.10` | `127.0.0.1` / `192.168.10.10` |
 | **AD-Client** | Stacja robocza (Domain Member) | Windows 10 Pro | `192.168.10.20` | `192.168.10.10` |
 
 ### Weryfikacja komunikacji sieciowej
@@ -17,7 +18,19 @@ Poniższy zrzut ekranu przedstawia pomyślną weryfikację połączenia (ICMP Pi
 ![Test połączenia Ping]
 <img width="991" height="642" alt="image" src="https://github.com/user-attachments/assets/0797bd1b-646a-4ba2-9a08-c0987c42ed03" />
 
-## Etap 1: Budowa Kontrolera Domeny Active Directory (AD DS)
+## Etap 1: Wdrożenie zapory sieciowej (Edge Security - OPNsense)
+
+W celu zabezpieczenia styku sieci i monitorowania ruchu wychodzącego, wdrożono zaporę sieciową klasy korporacyjnej bazującą na systemie OPNsense.
+1. Maszyna wirtualna została wyposażona w dwa interfejsy: WAN (dostęp do Internetu) oraz LAN (brama domyślna dla sieci `ad-lab`).
+2. Skonfigurowano adresację statyczną interfejsu LAN na `192.168.10.1`.
+3. Zaktualizowano tablice routingu na Kontrolerze Domeny oraz stacji roboczej, ustawiając OPNsense jako domyślną bramę, co pozwala na pełną inspekcję ruchu.
+
+![Konsola OPNsense] 
+<img width="626" height="484" alt="image" src="https://github.com/user-attachments/assets/225753ec-6b84-4e78-80bf-0c75131ed0b4" />
+
+---
+
+## Etap 2: Budowa Kontrolera Domeny Active Directory (AD DS)
 
 1. **Konfiguracja statycznego adresowania IP** na serwerze `DC01` oraz instalacja roli **Active Directory Domain Services (AD DS)**.
 2. **Promocja serwera** do poziomu Kontrolera Domeny dla nowego lasu: `lab.local`.
@@ -28,7 +41,7 @@ Poniższy zrzut ekranu przedstawia pomyślną weryfikację połączenia (ICMP Pi
 
 ---
 
-## Etap 2: Struktura Organizacyjna i Podłączenie Stacji Roboczej
+## Etap 3: Struktura Organizacyjna i Podłączenie Stacji Roboczej
 
 W celu zachowania dobrych praktyk zarządzania tożsamością, wdrożono logiczną strukturę jednostek organizacyjnych (OU) rozdzielającą konta użytkowników od stacji roboczych.
 1. Utworzono dedykowane kontenery OU: `Firmowe_Konta` oraz podfolder `Stacje_Robocze`.
@@ -38,7 +51,7 @@ W celu zachowania dobrych praktyk zarządzania tożsamością, wdrożono logiczn
 
 ---
 
-## Etap 3: Hardening GPO (Polityki Bezpieczeństwa)
+## Etap 4: Hardening GPO (Polityki Bezpieczeństwa)
 
 Jednym z kluczowych wektorów ataków w sieciach korporacyjnych (np. ransomware, exfiltration) są zewnętrze nośniki pamięci. Wdrożono centralną politykę GPO blokującą dostęp do portów USB na stacjach końcowych.
 1. Skonfigurowano obiekt GPO (`GPO_Hardening_BlockUSB`) podpięty pod OU `Stacje_Robocze`.
@@ -49,7 +62,7 @@ Jednym z kluczowych wektorów ataków w sieciach korporacyjnych (np. ransomware,
 
 ---
 
-## Etap 4: Implementacja Windows LAPS (Local Administrator Password Solution)
+## Etap 5: Implementacja Windows LAPS (Local Administrator Password Solution)
 
 Aby zabezpieczyć środowisko przed atakami typu *Lateral Movement* oraz *Pass-the-Hash*, wyeliminowano problem statycznych, współdzielonych haseł lokalnych administratorów na stacjach roboczych.
 1. Rozszerzono schemat bazy Active Directory (`Update-AdmPwdADSchema`) o nowe atrybuty do bezpiecznego przechowywania haseł.
