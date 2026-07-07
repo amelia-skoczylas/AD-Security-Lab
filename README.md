@@ -26,14 +26,17 @@ Poniższy zrzut ekranu przedstawia pomyślną weryfikację połączenia (ICMP Pi
 ![Promocja DC i status usług AD DS]
 <img width="1021" height="835" alt="image" src="https://github.com/user-attachments/assets/5fcc7ac4-be9f-4750-9aab-2c2f52f1a504" />
 
+---
 
 ## Etap 2: Struktura Organizacyjna i Podłączenie Stacji Roboczej
-*(Ten etap uzupełnimy w kolejnych krokach)*
+
+<img width="519" height="325" alt="image" src="https://github.com/user-attachments/assets/b3af9450-3f44-4cd2-a99e-45582be287a2" />
 
 ---
 
 ## Etap 3: Hardening GPO (Polityki Bezpieczeństwa)
-*(Ten etap uzupełnimy po konfiguracji blokady USB i haseł)*
+
+<img width="911" height="735" alt="image" src="https://github.com/user-attachments/assets/8352ba30-220c-4660-8d21-fa157eafed05" />
 
 ---
 
