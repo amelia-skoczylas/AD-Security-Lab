@@ -30,15 +30,31 @@ Poniższy zrzut ekranu przedstawia pomyślną weryfikację połączenia (ICMP Pi
 
 ## Etap 2: Struktura Organizacyjna i Podłączenie Stacji Roboczej
 
+W celu zachowania dobrych praktyk zarządzania tożsamością, wdrożono logiczną strukturę jednostek organizacyjnych (OU) rozdzielającą konta użytkowników od stacji roboczych.
+1. Utworzono dedykowane kontenery OU: `Firmowe_Konta` oraz podfolder `Stacje_Robocze`.
+2. Stację roboczą Windows 10 przełączono z domyślnej grupy roboczej do domeny `lab.local` pod nową, ustandaryzowaną nazwą (`PC-CLIENT01`).
+
 <img width="519" height="325" alt="image" src="https://github.com/user-attachments/assets/b3af9450-3f44-4cd2-a99e-45582be287a2" />
 
 ---
 
 ## Etap 3: Hardening GPO (Polityki Bezpieczeństwa)
 
+Jednym z kluczowych wektorów ataków w sieciach korporacyjnych (np. ransomware, exfiltration) są zewnętrze nośniki pamięci. Wdrożono centralną politykę GPO blokującą dostęp do portów USB na stacjach końcowych.
+1. Skonfigurowano obiekt GPO (`GPO_Hardening_BlockUSB`) podpięty pod OU `Stacje_Robocze`.
+2. Aktywowano regułę: *All Removable Storage classes: Deny all access*.
+3. Pomyślnie zweryfikowano działanie blokady na stacji roboczej po wykonaniu aktualizacji zasad (`gpupdate /force`) – system zwraca wyjątek "Odmowa dostępu".
+
 <img width="911" height="735" alt="image" src="https://github.com/user-attachments/assets/8352ba30-220c-4660-8d21-fa157eafed05" />
 
 ---
 
 ## Etap 4: Implementacja Windows LAPS (Local Administrator Password Solution)
-*(Ten etap uzupełnimy na samym końcu z głównym dowodem na rotację haseł)*
+
+Aby zabezpieczyć środowisko przed atakami typu *Lateral Movement* oraz *Pass-the-Hash*, wyeliminowano problem statycznych, współdzielonych haseł lokalnych administratorów na stacjach roboczych.
+1. Rozszerzono schemat bazy Active Directory (`Update-AdmPwdADSchema`) o nowe atrybuty do bezpiecznego przechowywania haseł.
+2. Skonfigurowano politykę wymuszającą generowanie skomplikowanych, 16-znakowych haseł rotowanych automatycznie co 30 dni.
+3. **Weryfikacja sukcesu:** Poniższy zrzut ekranu przedstawia odczyt wygenerowanego hasła stacji `PC-CLIENT01` bezpośrednio z atrybutu `ms-Mcs-AdmPwd` na Kontrolerze Domeny:
+
+<img width="741" height="704" alt="image" src="https://github.com/user-attachments/assets/c32481e1-fd80-4381-a630-f338fc88c8bd" />
+
